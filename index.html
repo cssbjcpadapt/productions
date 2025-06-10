@@ -1,0 +1,299 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Productions</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url('background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: rgba(0, 0, 0, 0.8);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      max-width: 700px;
+      text-align: center;
+    }
+    h1 {
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+    .question {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .choices button {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      background-color: #2a516e;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .choices button:hover {
+      background-color: #3a6c8f;
+    }
+    .hidden {
+      display: none;
+    }
+    #finalImage {
+      margin-top: 20px;
+      max-width: 100%;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.4);
+    }
+    .progress {
+      font-size: 16px;
+    }
+    .message {
+      font-size: 18px;
+      margin-top: 15px;
+    }
+    .lightning-flash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9999;
+    }
+    .flash-active {
+      animation: flash 0.3s ease-out;
+    }
+    @keyframes flash {
+      0% { opacity: 0; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button onclick="launchFullscreen()" style="margin-bottom:15px;padding:10px 20px;border:none;border-radius:10px;font-size:16px;background-color:#2a516e;color:white;cursor:pointer;">Activer le plein écran</button>
+    <h1>Productions</h1>
+    <div id="game">
+      <div class="question" id="question">Chargement…</div>
+      <div class="choices" id="choices"></div>
+      <div class="progress" id="progress">Énigme 1 sur 7</div>
+    </div>
+    <div id="feedback" class="hidden">
+      <p class="message" id="feedbackText"></p>
+    </div>
+    <div id="finalScreen" class="hidden">
+      <p class="message">🎉 Félicitations ! Vous avez réussi le jeu-questionnaire sur les productions. Vous avez maintenant droit au <strong>code d’accès</strong> :</p>
+      <img id="finalImage" src="final_code_image.png" alt="Code d'accès final">
+    </div>
+    <audio id="flashSound">
+      <source src="storm_effect.mp3" type="audio/mpeg">
+    </audio>
+    <div class="lightning-flash" id="flash"></div>
+  </div>
+
+  <script>
+    function launchFullscreen() {
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (el.msRequestFullscreen) el.msRequestFullscreen();
+    }
+
+    const questions = [
+      {
+        question: "Qu’est-ce qu’une production d’élève permet de démontrer?",
+        choices: ["Ses notes d’examen", "Son comportement en classe", "Ses connaissances et compétences", "Son assiduité"],
+        correct: 2,
+        feedbackRight: "✅ Bravo ! La production permet de démontrer les connaissances et les compétences acquises.",
+        feedbackWrong: "❌ Une production ne démontre pas seulement les notes. Elle permet de juger les compétences réelles à travers l'application concrète des savoirs."
+      },
+      {
+        question: "Quels types de productions peuvent être utilisées?",
+        choices: ["Seulement les productions écrites", "Uniquement les productions orales", "Des productions orales, écrites ou visuelles", "Des productions collectives uniquement"],
+        correct: 2,
+        feedbackRight: "✅ Exact ! Varier les types de productions rend l’évaluation plus inclusive et juste.",
+        feedbackWrong: "❌ La triangulation exige une variété de productions (écrites, orales, visuelles)."
+      },
+      {
+        question: "Pourquoi les productions sont-elles importantes dans la triangulation?",
+        choices: ["Elles permettent d’éviter les tests standardisés", "Elles complètent les observations et les conversations", "Elles remplacent le jugement professionnel", "Elles servent à décorer la classe"],
+        correct: 1,
+        feedbackRight: "✅ Bien vu ! Les productions complètent les observations et conversations dans une triangulation solide.",
+        feedbackWrong: "❌ Une production ne suffit pas seule. C’est le croisement avec observations et conversations qui permet une vision juste."
+      },
+      {
+        question: "Quelle est une bonne pratique lors de l’évaluation d’une production?",
+        choices: ["Noter au hasard avec la méthode de l'escalier", "Se baser uniquement sur la propreté du travail", "Mettre le résultat en pourcentage", "Utiliser des critères clairs et communs"],
+        correct: 3,
+        feedbackRight: "✅ C’est ça ! Des critères explicites permettent une évaluation équitable.",
+        feedbackWrong: "❌ Des critères clairs assurent la cohérence et la transparence de l’évaluation. Laisser place au hasard nuit à l’équité."
+      },
+      {
+        question: "Vrai ou faux? Il faut absolument éviter de donner aux élèves le choix concernant la forme de la production.",
+        choices: ["Vrai", "Faux"],
+        correct: 1,
+        feedbackRight: "✅ Excellent ! Offrir un choix motive et engage davantage l’élève.",
+        feedbackWrong: "❌ Offrir le choix du format renforce la motivation et la différenciation."
+      },
+      {
+        question: "Pourquoi une production est-elle utile pour l’enseignant?",
+        choices: ["Elle permet de remplir le bulletin sans autres données", "Elle sert à illustrer les devoirs à faire", "Elle rend visible l’application des connaissances", "Elle évite d’avoir à faire des observations"],
+        correct: 2,
+        feedbackRight: "✅ Tout à fait ! Les productions rendent visible l’application des apprentissages.",
+        feedbackWrong: "❌ Une production rend visible l’apprentissage, ce qui est fondamental pour l’évaluation authentique."
+      },
+      {
+        question: "Vrai ou faux? L’élève doit toujours faire sa production seul pour qu’elle soit valide.",
+        choices: ["Vrai", "Faux"],
+        correct: 1,
+        feedbackRight: "✅ Correct ! Le travail en groupe peut aussi fournir des traces valides de l’apprentissage.",
+        feedbackWrong: "❌ Travailler en équipe peut aussi révéler des apprentissages. L’important, c’est de savoir ce que chacun a appris."
+      }
+    ];
+
+    let current = 0;
+
+    const questionEl = document.getElementById("question");
+    const choicesEl = document.getElementById("choices");
+    const progressEl = document.getElementById("progress");
+    const gameEl = document.getElementById("game");
+    const feedbackEl = document.getElementById("feedback");
+    const feedbackText = document.getElementById("feedbackText");
+    const finalScreen = document.getElementById("finalScreen");
+
+    function triggerLightning() {
+      const flash = document.getElementById("flash");
+      const sound = document.getElementById("flashSound");
+      flash.classList.add("flash-active");
+      sound.currentTime = 0;
+      sound.play();
+      setTimeout(() => flash.classList.remove("flash-active"), 300);
+    }
+
+    function showQuestion() {
+      const q = questions[current];
+      questionEl.textContent = q.question;
+      choicesEl.innerHTML = "";
+      q.choices.forEach((choice, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = choice;
+        btn.onclick = () => {
+          triggerLightning();
+          if (index === q.correct) {
+            showFeedback(q.feedbackRight, false);
+          } else {
+            showFeedback(q.feedbackWrong + "<br><br><em>Vous devez tout recommencer pour vous échapper du triangle.</em>", true);
+          }
+        };
+        choicesEl.appendChild(btn);
+      });
+      progressEl.textContent = `Énigme ${current + 1} sur ${questions.length}`;
+    }
+
+    function showFeedback(text, isWrong) {
+      gameEl.classList.add("hidden");
+      feedbackText.innerHTML = text;
+      feedbackEl.classList.remove("hidden");
+      setTimeout(() => {
+        feedbackEl.classList.add("hidden");
+        if (isWrong) {
+          current = 0;
+        } else {
+          current++;
+        }
+        if (current >= questions.length) {
+          finalScreen.classList.remove("hidden");
+        } else {
+          gameEl.classList.remove("hidden");
+          showQuestion();
+        }
+      }, isWrong ? 9000 : 3000);
+    }
+
+    
+const feedbacks = [
+  [
+    "❌ Les notes d'examen ne sont qu'une partie de l'évaluation. Les productions permettent d'observer la mobilisation des connaissances.",
+    "❌ Le comportement en classe est une donnée importante, mais ne démontre pas les compétences scolaires de manière directe.",
+    "✅ Bravo ! La production permet de démontrer les connaissances et les compétences acquises.",
+    "❌ L’assiduité reflète l’engagement, mais ce n’est pas un indicateur suffisant pour juger des apprentissages."
+  ],
+  [
+    "❌ Limiter aux productions écrites restreint les possibilités de démonstration des apprentissages, surtout pour des élèves avec des forces variées.",
+    "❌ Les productions orales sont utiles, mais insuffisantes à elles seules pour trianguler efficacement.",
+    "✅ Exact ! Varier les types de productions rend l’évaluation plus inclusive et juste.",
+    "❌ Les productions collectives peuvent être pertinentes, mais l’évaluation triangulée requiert aussi des traces individuelles."
+  ],
+  [
+    "❌ Ce n’est pas leur objectif principal. Les productions ne remplacent pas tous les types d’évaluation.",
+    "✅ Bien vu ! Les productions complètent les observations et conversations dans une triangulation solide.",
+    "❌ Elles ne remplacent pas le jugement professionnel, elles l’éclairent en donnant une trace concrète.",
+    "❌ Même si elles sont affichables, leur but est de montrer un apprentissage, pas de décorer."
+  ],
+  [
+    "❌ Évaluer au hasard enlève toute rigueur et justice à l’évaluation.",
+    "❌ La propreté ne reflète pas toujours le niveau de compétence. On évalue le fond, pas la forme.",
+    "❌ Le pourcentage est une traduction chiffrée, pas une stratégie de rétroaction ou d’analyse précise.",
+    "✅ C’est ça ! Des critères explicites permettent une évaluation équitable."
+  ],
+  [
+    "❌ Offrir le choix du format permet de mieux différencier et d’encourager l’élève à démontrer ses forces.",
+    "✅ Excellent ! Offrir un choix motive et engage davantage l’élève."
+  ],
+  [
+    "❌ Le bulletin se base sur des observations triangulées, pas uniquement sur une production isolée.",
+    "❌ Les productions sont plus que des illustrations; elles servent à documenter l’apprentissage.",
+    "✅ Tout à fait ! Les productions rendent visible l’application des apprentissages.",
+    "❌ Les observations restent essentielles, car elles montrent des comportements en contexte réel."
+  ],
+  [
+    "❌ Le travail d’équipe peut révéler des apprentissages tout aussi valides. Il faut simplement bien cerner la contribution de chacun.",
+    "✅ Correct ! Le travail en groupe peut aussi fournir des traces valides de l’apprentissage."
+  ]
+];
+
+
+
+    function showQuestion() {
+      const q = questions[current];
+      questionEl.textContent = q.question;
+      choicesEl.innerHTML = "";
+      q.choices.forEach((choice, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = choice;
+        btn.onclick = () => {
+          triggerLightning();
+          const feedback = feedbacks[current][index];
+          const isWrong = index !== q.correct;
+          showFeedback(feedback + (isWrong ? "<br><br><em>Vous devez tout recommencer pour vous échapper du triangle.</em>" : ""), isWrong);
+        };
+        choicesEl.appendChild(btn);
+      });
+      progressEl.textContent = `Énigme ${current + 1} sur ${questions.length}`;
+    }
+
+
+window.onload = showQuestion;
+  </script>
+</body>
+</html>
