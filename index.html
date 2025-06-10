@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Productions</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: url('background.jpg') no-repeat center center fixed;
+      background-size: cover;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: rgba(0, 0, 0, 0.8);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      max-width: 700px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+
+    .question {
+      font-size: 20px;
+      margin-bottom: 20px;
+    }
+
+    .choices {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .choices button {
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      background-color: #2a516e;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .choices button:hover {
+      background-color: #3a6c8f;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #finalImage {
+      margin-top: 20px;
+      max-width: 100%;
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.4);
+    }
+
+    .progress {
+      font-size: 16px;
+    }
+
+    .message {
+      font-size: 18px;
+      margin-top: 15px;
+    }
+
+    .lightning-flash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background: white;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 9999;
+    }
+
+    .flash-active {
+      animation: flash 0.3s ease-out;
+    }
+
+    @keyframes flash {
+      0% { opacity: 0; }
+      50% { opacity: 0.8; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button onclick="launchFullscreen()" style="margin-bottom:15px;padding:10px 20px;border:none;border-radius:10px;font-size:16px;background-color:#2a516e;color:white;cursor:pointer;">Activer le plein écran</button>
+    <h1>Productions</h1>
+    <div id="game">
+      <div class="question" id="question">Chargement…</div>
+      <div class="choices" id="choices"></div>
+      <div class="progress" id="progress">Énigme 1 sur 7</div>
+    </div>
+    
+    <div id="failScreen" class="hidden">
+      <p class="message" style="color: red;">⛈️ Vous avez échoué à sortir du Triangle...<br>Le jeu va recommencer.</p>
+    </div>
+    <div id="finalScreen" class="hidden">
+
+      <p class="message">🎉 Félicitations ! Vous avez réussi le jeu-questionnaire sur les productions. Vous avez maintenant droit au <strong>code d’accès</strong> :</p>
+      <img id="finalImage" src="final_code_image.png" alt="Code d'accès final">
+    </div>
+    <audio id="flashSound">
+      <source src="storm_effect.mp3" type="audio/mpeg">
+    </audio>
+    <div class="lightning-flash" id="flash"></div>
+  </div>
+
+  <script>
+    function launchFullscreen() {
+      const el = document.documentElement;
+      if (el.requestFullscreen) {
+        el.requestFullscreen();
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+      } else if (el.msRequestFullscreen) {
+        el.msRequestFullscreen();
+      }
+    }
+
+    const enigmes = [
+      {
+        question: "Qu’est-ce qu’une production d’élève permet de démontrer?",
+        choices: ["Ses notes d’examen", "Son comportement en classe", "Ses connaissances et compétences", "Son assiduité"],
+        correct: 2
+      },
+      {
+        question: "Quels types de productions peuvent être utilisées?",
+        choices: ["Seulement les productions écrites", "Uniquement les productions orales", "Des productions orales, écrites ou visuelles", "Des productions collectives uniquement"],
+        correct: 2
+      },
+      {
+        question: "Pourquoi les productions sont-elles importantes dans la triangulation?",
+        choices: ["Elles permettent d’éviter les tests standardisés", "Elles complètent les observations et les conversations", "Elles remplacent le jugement professionnel", "Elles servent à décorer la classe"],
+        correct: 1
+      },
+      {
+        question: "Quelle est une bonne pratique lors de l’évaluation d’une production?",
+        choices: ["Noter au hasard avec la méthode de l'escalier", "Se baser uniquement sur la propreté du travail", "Mettre le résultat en pourcentage", "Utiliser des critères clairs et communs"],
+        correct: 3
+      },
+      {
+        question: "Vrai ou faux? Il faut absolument éviter de donner aux élèves le choix concernant la forme de la production.",
+        choices: ["Vrai", "Faux"],
+        correct: 1
+      },
+      {
+        question: "Pourquoi une production est-elle utile pour l’enseignant?",
+        choices: ["Elle permet de remplir le bulletin sans autres données", "Elle sert à illustrer les devoirs à faire", "Elle rend visible l’application des connaissances", "Elle évite d’avoir à faire des observations"],
+        correct: 2
+      },
+      {
+        question: "Vrai ou faux? L’élève doit toujours faire sa production seul pour qu’elle soit valide.",
+        choices: ["Vrai", "Faux"],
+        correct: 1
+      }
+    ];
+
+    let current = 0;
+
+    const questionEl = document.getElementById("question");
+    const choicesEl = document.getElementById("choices");
+    const progressEl = document.getElementById("progress");
+    const gameEl = document.getElementById("game");
+    const finalScreen = document.getElementById("finalScreen");
+
+    function triggerLightning() {
+      const flash = document.getElementById("flash");
+      const sound = document.getElementById("flashSound");
+      flash.classList.add("flash-active");
+      sound.currentTime = 0;
+      sound.play();
+      setTimeout(() => flash.classList.remove("flash-active"), 300);
+    }
+
+    function showEnigma() {
+      const e = enigmes[current];
+      questionEl.textContent = e.question;
+      if (document.getElementById("error-msg")) document.getElementById("error-msg").remove();
+      choicesEl.innerHTML = "";
+      e.choices.forEach((choice, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = choice;
+        btn.onclick = () => {
+          triggerLightning();
+          setTimeout(() => {
+            if (index === e.correct) {
+              current++;
+              if (current < enigmes.length) {
+                showEnigma();
+              } else {
+                escapeSuccess();
+              }
+            } else {
+              
+              const errorMsg = document.createElement('p');
+              errorMsg.textContent = "❌ Mauvaise réponse. Le jeu recommence !";
+              errorMsg.style.color = "red";
+              errorMsg.style.marginBottom = "10px";
+              if (!document.getElementById('error-msg')) {
+                errorMsg.id = "error-msg";
+                document.querySelector('.question').prepend(errorMsg);
+              }
+    
+              
+              gameEl.classList.add("hidden");
+              document.getElementById("failScreen").classList.remove("hidden");
+              setTimeout(() => {
+                document.getElementById("failScreen").classList.add("hidden");
+                gameEl.classList.remove("hidden");
+                current = 0;
+                showEnigma();
+              }, 3000);
+
+            }
+          }, 400);
+        };
+        choicesEl.appendChild(btn);
+      });
+      progressEl.textContent = `Énigme ${current + 1} sur ${enigmes.length}`;
+    }
+
+    function escapeSuccess() {
+      gameEl.classList.add("hidden");
+      finalScreen.classList.remove("hidden");
+    }
+
+    document.addEventListener("DOMContentLoaded", showEnigma);
+  </script>
+</body>
+</html>
